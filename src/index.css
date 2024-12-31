@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-white;
+  font-family: 'Comic Neue', cursive;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-gray-700 px-6 py-2 rounded-md hover:bg-gray-200 transition-colors;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary;
+  }
+}
