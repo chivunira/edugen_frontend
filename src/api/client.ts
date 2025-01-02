@@ -1,5 +1,7 @@
 // src/api/client.ts
 import axios, {AxiosInstance} from 'axios';
+import {store} from "../store/store.ts";
+import {logout} from "../store/slices/authSlice.ts";
 
 const publicEndpoints = [
   '/auth/register/',
@@ -13,6 +15,7 @@ const apiClient:AxiosInstance = axios.create({
   timeout: parseInt(import.meta.env.VITE_API_TIMEOUT || '30000'),
   headers: {
     'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true'
   },
 });
 
@@ -58,6 +61,9 @@ apiClient.interceptors.response.use(
 
         return apiClient(originalRequest);
       } catch (refreshError) {
+        // Dispatch logout action to clear Redux State
+        store.dispatch(logout());
+
         // If refresh fails, clear tokens and redirect to login
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
