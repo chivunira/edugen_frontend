@@ -9,7 +9,7 @@ const Logo = () => {
     >
       <div className="w-10 h-10 bg-[#B2EBFF] rounded-full flex items-center justify-center">
         <img
-          src="/src/assets/images/landing.png"  // Make sure this path is correct
+          src="/src/assets/images/landing.png"
           alt="EDUGEN Logo"
           className="w-8 h-8 object-contain"
         />

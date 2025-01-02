@@ -1,9 +1,8 @@
 // src/App.tsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { store } from './store/store';
+import { store, persistor } from './store/store';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-
 import LandingPage from './pages/LandingPage';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
@@ -14,12 +13,15 @@ import DashboardPage from './pages/DashboardPage';
 import ContentPage from './pages/ContentPage';
 import AssessmentsPage from './pages/AssessmentsPage';
 import ProfilePage from './pages/ProfilePage';
-import TopicPage from './pages/TopicPage';
+import ChatPage from './pages/ChatPage.tsx';
+import TopicsPage from "./pages/TopicsPage.tsx";
+import { PersistGate } from "redux-persist/integration/react";
 
 function App() {
   return (
     <Provider store={store}>
-      <Router>
+      <PersistGate loading={null} persistor={persistor}>
+        <Router>
         <Routes>
           {/* Public routes */}
           <Route path="/" element={
@@ -59,13 +61,14 @@ function App() {
           }>
             <Route index element={<Navigate to="content" replace />} />
             <Route path="content" element={<ContentPage />} />
+            <Route path="content/:subjectId/topics" element={<TopicsPage />} />
             <Route path="assessments" element={<AssessmentsPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
 
-          <Route path="/topic/:topicId" element={
+          <Route path="/chat/:topicId" element={
             <ProtectedRoute>
-              <TopicPage />
+              <ChatPage />
             </ProtectedRoute>
           } />
 
@@ -73,6 +76,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
+      </PersistGate>
     </Provider>
   );
 }
