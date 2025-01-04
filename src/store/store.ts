@@ -3,22 +3,27 @@ import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import authReducer from './slices/authSlice';
+import assessmentReducer from './slices/assessmentSlice';
 
-const persistConfig = {
-  key: 'root',
+// Persist configuration for auth
+const authPersistConfig = {
+  key: 'auth',
   storage,
-  whitelist: ['auth'] // Only persist auth state
+  whitelist: ['user'], // Only persist user data in auth state
 };
 
-const persistedReducer = persistReducer(persistConfig, authReducer);
+// Root reducer type that combines all reducers
+const rootReducer = {
+  auth: persistReducer(authPersistConfig, authReducer),
+  assessment: assessmentReducer, // Assessment state doesn't need to be persisted
+};
 
 export const store = configureStore({
-  reducer: {
-    auth: persistedReducer,
-  },
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
+        // Ignore Redux Persist actions in serializable check
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
       },
     }),
@@ -26,5 +31,6 @@ export const store = configureStore({
 
 export const persistor = persistStore(store);
 
+// Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

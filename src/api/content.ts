@@ -1,6 +1,8 @@
 // src/api/content.ts
 import apiClient from './client';
-import { Subject, TopicResponse, ChatMessage } from '../types/content';
+import { Subject, TopicResponse, TopicDetail, ChatMessage } from '../types/content';
+import { Assessment, AssessmentResult, AssessmentSummary, QuestionFeedback } from '../types/assessment';
+
 
 interface ChatResponse {
   prompt: string;
@@ -91,7 +93,100 @@ const contentApi = {
       console.error('Error sending message:', error);
       throw error;
     }
-  }
+  },
+  /**
+   * Starts a new assessment for a specific topic
+   * @param topicId - The ID of the topic
+   * @returns Promise containing the assessment questions
+   */
+  startAssessment: async (topicId: number): Promise<Assessment> => {
+    try {
+      const response = await apiClient.post(`/tutor/assessments/${topicId}/start/`);
+      return response.data;
+    } catch (error) {
+      console.error('Error starting assessment:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Submits an answer for a question in an assessment
+   * @param assessmentId - The ID of the assessment
+   * @param questionId - The ID of the question
+   * @param answer - The user's answer
+   * @returns Promise containing the feedback for the answer
+   */
+  submitAnswer: async (
+    assessmentId: number,
+    questionId: number,
+    answer: string
+  ): Promise<QuestionFeedback> => {
+    try {
+      const response = await apiClient.post(`/tutor/assessments/${assessmentId}/submit/`, {
+        questionId,
+        answer
+      });
+      return {
+        isCorrect: response.data.score === 1.0,
+        score: response.data.score * 100,
+        feedback: response.data.feedback
+      };
+    } catch (error) {
+      console.error('Error submitting answer:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Completes an assessment and gets final results
+   * @param assessmentId - The ID of the assessment
+   * @returns Promise containing the assessment results
+   */
+  completeAssessment: async (assessmentId: number): Promise<AssessmentResult> => {
+    try {
+      const response = await apiClient.post(`/tutor/assessments/${assessmentId}/complete/`);
+      return {
+        assessmentId: response.data.assessmentId,
+        topicId: response.data.topicId,
+        score: response.data.score,
+        completedAt: response.data.completedAt,
+        questionResults: response.data.questionResults
+      };
+    } catch (error) {
+      console.error('Error completing assessment:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Gets assessment summary for a topic
+   * @param topicId - The ID of the topic
+   * @returns Promise containing the assessment summary
+   */
+  getAssessmentSummary: async (topicId: number): Promise<AssessmentSummary> => {
+    try {
+      const response = await apiClient.get(`/tutor/assessments/${topicId}/summary/`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching assessment summary:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Gets detailed results for a completed assessment
+   * @param assessmentId - The ID of the assessment
+   * @returns Promise containing the detailed assessment results
+   */
+  getAssessmentResults: async (assessmentId: number): Promise<AssessmentResult> => {
+    try {
+      const response = await apiClient.get(`/tutor/assessments/${assessmentId}/results/`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching assessment results:', error);
+      throw error;
+    }
+  },
 };
 
 export default contentApi;
