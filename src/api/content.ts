@@ -187,6 +187,48 @@ const contentApi = {
       throw error;
     }
   },
+
+  /**
+   * Gets user profile data including assessment history and performance metrics
+   * @returns Promise containing the user's profile data
+   */
+  getUserProfile: async () => {
+    try {
+      const response = await apiClient.get('/auth/profile/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Updates user profile information
+   * @param profileData - The profile data to update
+   * @returns Promise containing the updated profile data
+   */
+  updateUserProfile: async (profileData: {
+    first_name?: string;
+    last_name?: string;
+    profile_photo?: File;
+  }) => {
+    try {
+      const formData = new FormData();
+      Object.entries(profileData).forEach(([key, value]) => {
+        if (value) formData.append(key, value);
+      });
+
+      const response = await apiClient.patch('/auth/profile/update/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      throw error;
+    }
+  },
 };
 
 export default contentApi;

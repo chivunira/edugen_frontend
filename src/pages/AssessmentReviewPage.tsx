@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CheckCircle, XCircle, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import contentApi from '../api/content';
 import { AssessmentResult } from '../types/assessment';
+import QuestionStatusIndicator from "../components/assessment/QuestionStatusIndicator.tsx";
 
 interface ExpandedStates {
   [key: number]: boolean;
@@ -121,15 +122,7 @@ const AssessmentReviewPage = () => {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    {question.isCorrect ? (
-                      <div className="flex items-center text-green-600">
-                        <CheckCircle className="w-6 h-6" />
-                      </div>
-                    ) : (
-                      <div className="flex items-center text-red-500">
-                        <XCircle className="w-6 h-6" />
-                      </div>
-                    )}
+                    <QuestionStatusIndicator score={question.score} />
                     <div>
                       <h3 className="font-semibold">Question {index + 1}</h3>
                       <div className="text-sm text-gray-500">
@@ -173,9 +166,19 @@ const AssessmentReviewPage = () => {
                     <div>
                       <h4 className="text-sm font-medium text-gray-500 mb-2">Feedback</h4>
                       <div className={`rounded-lg p-4 ${
-                        question.isCorrect ? 'bg-green-50' : 'bg-yellow-50'
+                        question.score >= 100 ? 'bg-green-50' : 
+                        question.score >= 80 ? 'bg-emerald-50' :
+                        question.score >= 50 ? 'bg-amber-50' :
+                        question.score > 0 ? 'bg-orange-50' :
+                        'bg-red-50'
                       }`}>
-                        <p className={question.isCorrect ? 'text-green-700' : 'text-yellow-700'}>
+                        <p className={
+                          question.score >= 100 ? 'text-green-700' :
+                          question.score >= 80 ? 'text-emerald-700' :
+                          question.score >= 50 ? 'text-amber-700' :
+                          question.score > 0 ? 'text-orange-700' :
+                          'text-red-700'
+                        }>
                           {question.feedback}
                         </p>
                       </div>

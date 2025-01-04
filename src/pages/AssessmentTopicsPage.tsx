@@ -5,6 +5,7 @@ import { BookOpen, Trophy, ArrowLeft, Star } from 'lucide-react';
 import contentApi from '../api/content';
 import { TopicResponse, TopicDetail } from '../types/content';
 import { AssessmentSummary } from '../types/assessment';
+import AssessmentStartDialog from "../components/assessment/AssessmentStartDialog.tsx";
 import _ from 'lodash';
 
 
@@ -16,6 +17,9 @@ const AssessmentTopicsPage = () => {
   const [topicSummaries, setTopicSummaries] = useState<Record<number, AssessmentSummary>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<TopicDetail | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+
   const debouncedFetchTopicData = useCallback(
     _.debounce(async () => {
       if (!subjectId) return;
@@ -52,6 +56,18 @@ const AssessmentTopicsPage = () => {
     debouncedFetchTopicData();
     return () => debouncedFetchTopicData.cancel();
   }, [debouncedFetchTopicData]);
+
+  const handleTopicClick = (topic: TopicDetail) => {
+    setSelectedTopic(topic);
+    setShowConfirmation(true);
+  }
+
+  const handleConfirmAssessment = () => {
+    setShowConfirmation(false);
+    if (selectedTopic) {
+      navigate(`/assessment/${selectedTopic.id}`);
+    }
+  }
 
   // Calculate overall progress
   const completedTopics = Object.values(topicSummaries).filter(summary =>
@@ -92,84 +108,94 @@ const AssessmentTopicsPage = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-          {topics.map((topic, index) => {
-            const summary = topicSummaries[topic.id];
-            const hasAttempted = summary && summary.total_attempts > 0;
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+              {topics.map((topic, index) => {
+                const summary = topicSummaries[topic.id];
+                const hasAttempted = summary && summary.total_attempts > 0;
 
-            return (
-              <motion.div
-                key={topic.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                className={`bg-white rounded-xl shadow-md transition-all duration-300 group 
+                return (
+                    <motion.div
+                        key={topic.id}
+                        initial={{opacity: 0, y: 20}}
+                        animate={{opacity: 1, y: 0}}
+                        transition={{duration: 0.3, delay: index * 0.1}}
+                        className={`bg-white rounded-xl shadow-md transition-all duration-300 group 
                   ${hasAttempted ? 'border-2 border-green-200' : 'hover:shadow-lg cursor-pointer'}`}
-                onClick={() => navigate(`/assessment/${topic.id}`)}
-              >
-                <div className="p-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="rounded-full bg-blue-100 p-3">
-                      <BookOpen className="w-6 h-6 text-blue-600" />
-                    </div>
+                        onClick={() => handleTopicClick(topic)}
+                    >
+                      <div className="p-6">
+                        <div className="flex items-start space-x-4">
+                          <div className="rounded-full bg-blue-100 p-3">
+                            <BookOpen className="w-6 h-6 text-blue-600"/>
+                          </div>
 
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold mb-2 group-hover:text-blue-600 transition-colors">
-                        {topic.name}
-                      </h3>
-                      {topic.description && (
-                        <p className="text-gray-600 mb-4">{topic.description}</p>
-                      )}
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold mb-2 group-hover:text-blue-600 transition-colors">
+                              {topic.name}
+                            </h3>
+                            {topic.description && (
+                                <p className="text-gray-600 mb-4">{topic.description}</p>
+                            )}
 
-                      {hasAttempted ? (
-                        <div className="space-y-3">
-                          <div className="flex items-center space-x-2">
-                            <Trophy className="w-5 h-5 text-green-500" />
-                            <span className="text-green-600 font-medium">
+                            {hasAttempted ? (
+                                <div className="space-y-3">
+                                  <div className="flex items-center space-x-2">
+                                    <Trophy className="w-5 h-5 text-green-500"/>
+                                    <span className="text-green-600 font-medium">
                               Assessment Completed
                             </span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="flex">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                  key={star}
-                                  className={`w-4 h-4 ${
-                                    star <= summary.best_score/20
-                                      ? 'text-yellow-400 fill-current'
-                                      : 'text-gray-300'
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            <span className="text-gray-600">
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <div className="flex">
+                                      {[1, 2, 3, 4, 5].map((star) => (
+                                          <Star
+                                              key={star}
+                                              className={`w-4 h-4 ${
+                                                  star <= summary.best_score / 20
+                                                      ? 'text-yellow-400 fill-current'
+                                                      : 'text-gray-300'
+                                              }`}
+                                          />
+                                      ))}
+                                    </div>
+                                    <span className="text-gray-600">
                               Best Score: {summary.best_score}%
                             </span>
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            Completed {summary.total_attempts} attempt{summary.total_attempts !== 1 ? 's' : ''}
-                          </div>
-                          <div className="text-sm text-blue-500">
-                            Latest Score: {summary.last_score}%
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="mt-4 flex items-center justify-between">
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    Completed {summary.total_attempts} attempt{summary.total_attempts !== 1 ? 's' : ''}
+                                  </div>
+                                  <div className="text-sm text-blue-500">
+                                    Latest Score: {summary.last_score}%
+                                  </div>
+                                </div>
+                            ) : (
+                                <div className="mt-4 flex items-center justify-between">
                           <span className="text-blue-500 group-hover:translate-x-1 transition-transform">
                             Start Assessment →
                           </span>
-                          <span className="text-sm text-gray-500">
+                                  <span className="text-sm text-gray-500">
                             ~20 mins
                           </span>
+                                </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                      </div>
+                    </motion.div>
+                );
+              })}
+            </div>
+
+            <AssessmentStartDialog
+                isOpen={showConfirmation}
+                onClose={() => setShowConfirmation(false)}
+                onConfirm={handleConfirmAssessment}
+                topicName={selectedTopic?.name || ''}
+                subjectName={subject?.name || ''}
+            />
+          </>
       )}
     </div>
   );
